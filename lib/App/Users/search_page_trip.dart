@@ -15,6 +15,10 @@ class _SearchPageState extends State<SearchPageTrip> {
 
   GoogleMapController? mapController;
   Position? _currentPosition;
+  LatLng _defaultPosition = LatLng(
+    23.8103,
+    90.4125,
+  ); // Temporary default (Dhaka)
 
   @override
   void initState() {
@@ -22,23 +26,30 @@ class _SearchPageState extends State<SearchPageTrip> {
     _determinePosition();
   }
 
+  // Forcefully request location permission and set position
   Future<void> _determinePosition() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
+    if (!serviceEnabled) {
+      await Geolocator.openLocationSettings();
+      return _determinePosition();
+    }
 
-    LocationPermission permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied) return;
+    LocationPermission permission;
+    do {
+      permission = await Geolocator.requestPermission();
+    } while (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever);
 
     Position position = await Geolocator.getCurrentPosition();
     setState(() {
-      _currentPosition = position;
+      _defaultPosition = LatLng(position.latitude, position.longitude);
       pickupController.text =
           "Lat: ${position.latitude}, Lng: ${position.longitude}";
     });
 
     if (mapController != null) {
       mapController!.animateCamera(
-        CameraUpdate.newLatLng(LatLng(position.latitude, position.longitude)),
+        CameraUpdate.newLatLngZoom(_defaultPosition, 15),
       );
     }
   }
@@ -77,6 +88,9 @@ class _SearchPageState extends State<SearchPageTrip> {
 
   @override
   Widget build(BuildContext context) {
+    Brightness brightness = Theme.of(context).brightness;
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -84,18 +98,15 @@ class _SearchPageState extends State<SearchPageTrip> {
           GoogleMap(
             onMapCreated: (controller) {
               mapController = controller;
+              _setMapStyle(isDarkMode);
+              _determinePosition(); // Ensure the camera moves when the location is found
             },
             initialCameraPosition: CameraPosition(
-              target:
-                  _currentPosition != null
-                      ? LatLng(
-                        _currentPosition!.latitude,
-                        _currentPosition!.longitude,
-                      )
-                      : LatLng(23.8103, 90.4125), // Default to Dhaka
+              target: _defaultPosition,
               zoom: 15,
             ),
             myLocationEnabled: true,
+            myLocationButtonEnabled: true,
           ),
 
           // Input Fields
@@ -109,18 +120,21 @@ class _SearchPageState extends State<SearchPageTrip> {
                   "Pick-up Point",
                   Icons.my_location,
                   pickupController,
+                  brightness,
                 ),
                 SizedBox(height: 10),
                 _buildInputField(
                   "Destination",
                   Icons.location_on,
                   destinationController,
+                  brightness,
                 ),
                 SizedBox(height: 10),
                 _buildDateTimeField(
                   "Booking Date & Time",
                   Icons.calendar_today,
                   dateTimeController,
+                  brightness,
                 ),
               ],
             ),
@@ -140,15 +154,95 @@ class _SearchPageState extends State<SearchPageTrip> {
     );
   }
 
+  // Apply Google Map Style based on Theme
+  void _setMapStyle(bool isDarkMode) async {
+    if (mapController != null) {
+      String darkMapStyle = '''
+    [
+      {
+        "elementType": "geometry",
+        "stylers": [{"color": "#212121"}]
+      },
+      {
+        "elementType": "labels.text.fill",
+        "stylers": [{"color": "#ffffff"}]
+      },
+      {
+        "elementType": "labels.text.stroke",
+        "stylers": [{"color": "#424242"}]
+      },
+      {
+        "featureType": "road",
+        "elementType": "geometry",
+        "stylers": [{"color": "#383838"}]
+      },
+      {
+        "featureType": "road",
+        "elementType": "labels.text.fill",
+        "stylers": [{"color": "#ffffff"}]
+      },
+      {
+        "featureType": "road.highway",
+        "elementType": "geometry",
+        "stylers": [{"color": "#616161"}]
+      },
+      {
+        "featureType": "road.highway",
+        "elementType": "labels.text.fill",
+        "stylers": [{"color": "#f3f3f3"}]
+      },
+      {
+        "featureType": "road.arterial",
+        "elementType": "geometry",
+        "stylers": [{"color": "#484848"}]
+      },
+      {
+        "featureType": "road.arterial",
+        "elementType": "labels.text.fill",
+        "stylers": [{"color": "#ffffff"}]
+      },
+      {
+        "featureType": "road.local",
+        "elementType": "geometry",
+        "stylers": [{"color": "#303030"}]
+      },
+      {
+        "featureType": "road.local",
+        "elementType": "labels.text.fill",
+        "stylers": [{"color": "#ffffff"}]
+      },
+      {
+        "featureType": "poi",
+        "stylers": [{"visibility": "off"}]
+      },
+      {
+        "featureType": "water",
+        "elementType": "geometry",
+        "stylers": [{"color": "#000000"}]
+      },
+      {
+        "featureType": "water",
+        "elementType": "labels.text.fill",
+        "stylers": [{"color": "#ffffff"}]
+      }
+    ]
+    ''';
+
+      String lightMapStyle = ""; // Default Google Map style
+      mapController!.setMapStyle(isDarkMode ? darkMapStyle : lightMapStyle);
+    }
+  }
+
   Widget _buildInputField(
     String hint,
     IconData icon,
     TextEditingController controller,
+    Brightness brightness,
   ) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 15, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: brightness == Brightness.dark ? Colors.grey[850] : Colors.white,
         borderRadius: BorderRadius.circular(30), // Curve Style
         boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 5)],
       ),
@@ -161,6 +255,12 @@ class _SearchPageState extends State<SearchPageTrip> {
               controller: controller,
               decoration: InputDecoration(
                 hintText: hint,
+                hintStyle: TextStyle(
+                  color:
+                      brightness == Brightness.dark
+                          ? Colors.white70
+                          : Colors.black54,
+                ),
                 border: InputBorder.none,
               ),
             ),
@@ -174,13 +274,15 @@ class _SearchPageState extends State<SearchPageTrip> {
     String hint,
     IconData icon,
     TextEditingController controller,
+    Brightness brightness,
   ) {
     return GestureDetector(
       onTap: _selectDateTime, // Make entire field clickable
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 15, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color:
+              brightness == Brightness.dark ? Colors.grey[850] : Colors.white,
           borderRadius: BorderRadius.circular(30), // Curve Style
           boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 5)],
         ),
@@ -196,6 +298,12 @@ class _SearchPageState extends State<SearchPageTrip> {
                   focusNode: AlwaysDisabledFocusNode(), // Disables text input
                   decoration: InputDecoration(
                     hintText: hint,
+                    hintStyle: TextStyle(
+                      color:
+                          brightness == Brightness.dark
+                              ? Colors.white70
+                              : Colors.black54,
+                    ),
                     border: InputBorder.none,
                   ),
                 ),

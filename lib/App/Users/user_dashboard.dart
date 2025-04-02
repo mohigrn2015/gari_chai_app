@@ -45,7 +45,11 @@ class _UserDashboardState extends State<UserDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Gari-Chai"), centerTitle: true),
+      appBar: AppBar(
+        title: Text("Gari-Chai"),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+      ),
       body: Column(
         children: [
           // Top Section with Buttons (50%)
@@ -71,7 +75,8 @@ class _UserDashboardState extends State<UserDashboard> {
           ),
 
           // Divider Line
-          Divider(thickness: 2, color: Colors.grey.shade300),
+          //Divider(thickness: 2, color: Colors.grey.shade300),
+          //Divider(thickness: 2),
 
           // Search Box (Placed Right Below the Divider)
           Padding(
@@ -112,7 +117,10 @@ class _UserDashboardState extends State<UserDashboard> {
                             SizedBox(width: 10),
                             Text(
                               "Where to go?",
-                              style: TextStyle(fontSize: 18),
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.black,
+                              ),
                             ),
                           ],
                         ),
@@ -148,7 +156,13 @@ class _UserDashboardState extends State<UserDashboard> {
                               size: 24,
                             ),
                             SizedBox(width: 10),
-                            Text("Booking", style: TextStyle(fontSize: 18)),
+                            Text(
+                              "Booking",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.black,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -222,24 +236,36 @@ class _UserDashboardState extends State<UserDashboard> {
           ],
           borderRadius: BorderRadius.circular(15),
         ),
-        child: ElevatedButton(
-          onPressed: () {},
-          style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.all(15),
-            backgroundColor: Colors.blue.shade100,
-            foregroundColor: Colors.blue.shade900,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.4, // Adaptive width
+          child: ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              padding: EdgeInsets.all(12),
+              backgroundColor: Colors.blue.shade100,
+              foregroundColor: const Color.fromARGB(255, 54, 78, 114),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 0,
             ),
-            elevation: 0,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 25),
-              SizedBox(height: 5),
-              Text(text, textAlign: TextAlign.center),
-            ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 25),
+                SizedBox(height: 5),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    text,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                    ), // Adjust font size for better fit
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

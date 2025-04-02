@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:gari_chai/App/Users/user_dashboard.dart';
 import 'package:gari_chai/App/Drivers/driver_dashboard.dart';
+import 'package:gari_chai/config.dart';
 
 class UserDriverRegistrationScreen extends StatefulWidget {
   final String mobileNumber;
@@ -87,7 +88,7 @@ class _UserDriverRegistrationScreenState
     }
     try {
       final response = await http.post(
-        Uri.parse("http://10.0.2.2:5000/api/register"),
+        Uri.parse("${AppConfig.baseUrl}/api/register"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(requestData),
       );

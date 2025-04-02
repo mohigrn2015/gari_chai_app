@@ -1,15 +1,19 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'user_driver_registration.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import 'dart:convert'; // For jsonEncode and jsonDecode
-import 'package:http/http.dart' as http; // For HTTP requests
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:gari_chai/App/Users/user_dashboard.dart';
 import 'package:gari_chai/App/Drivers/driver_dashboard.dart';
+import 'package:gari_chai/config.dart';
+import 'package:gari_chai/loadingscreen.dart';
 
 class OTPVerificationScreen extends StatefulWidget {
-  final String verificationId;
-  OTPVerificationScreen(this.verificationId);
+  final String phone;
+  OTPVerificationScreen(this.phone);
 
   @override
   _OTPVerificationScreenState createState() => _OTPVerificationScreenState();
@@ -17,41 +21,60 @@ class OTPVerificationScreen extends StatefulWidget {
 
 class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   final TextEditingController otpController = TextEditingController();
-  FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  bool isLoading = false; // Loading state
+  String verificationId2 = "";
+  int remainingTime = 300; // 5 minutes in seconds
+  Timer? timer;
 
-  // void verifyOTP() async {
-  //   String otp = otpController.text.trim();
-  //   PhoneAuthCredential credential = PhoneAuthProvider.credential(
-  //     verificationId: widget.verificationId,
-  //     smsCode: otp,
-  //   );
+  @override
+  void initState() {
+    super.initState();
+    sendOTP();
+    startTimer();
+  }
 
-  //   try {
-  //     UserCredential userCredential = await _auth.signInWithCredential(
-  //       credential,
-  //     );
-  //     Navigator.pushReplacement(
-  //       context,
-  //       MaterialPageRoute(
-  //         builder:
-  //             (context) =>
-  //                 UserDriverRegistrationScreen(userCredential.user!.uid),
-  //       ),
-  //     );
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(
-  //       context,
-  //     ).showSnackBar(SnackBar(content: Text("Invalid OTP")));
-  //   }
-  // }
+  void startTimer() {
+    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (remainingTime > 0) {
+        setState(() => remainingTime--);
+      } else {
+        timer.cancel();
+      }
+    });
+  }
 
-  void verifyOTP() async {
+  void sendOTP() {
+    _auth.verifyPhoneNumber(
+      phoneNumber: widget.phone,
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        await _auth.signInWithCredential(credential);
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Error: ${e.message}")));
+      },
+      codeSent: (String verId, int? resendToken) {
+        setState(() {
+          verificationId2 = verId;
+        });
+      },
+      codeAutoRetrievalTimeout: (String verId) {
+        setState(() {
+          verificationId2 = verId;
+        });
+      },
+    );
+  }
+
+  void verifyOTP(String verificationId) async {
+    setState(() => isLoading = true);
     String otp = otpController.text.trim();
     PhoneAuthCredential credential = PhoneAuthProvider.credential(
-      verificationId: widget.verificationId,
+      verificationId: verificationId2,
       smsCode: otp,
     );
-
     try {
       // Verify OTP with Firebase
       UserCredential userCredential = await _auth.signInWithCredential(
@@ -84,9 +107,10 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         );
       }
     } catch (e) {
+      setState(() => isLoading = false); // Hide loading indicator
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text("Invalid OTP")));
+      ).showSnackBar(SnackBar(content: Text("Invalid OTP, please try again")));
     }
   }
 
@@ -107,7 +131,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     try {
       String formattedPhone = formatPhoneNumber(phoneNumber);
       final response = await http.post(
-        Uri.parse("http://10.0.2.2:5000/api/checkUser"),
+        Uri.parse("${AppConfig.baseUrl}/api/checkUser"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"username": formattedPhone}),
       );
@@ -120,6 +144,18 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       print("Error calling API: $e");
     }
     return {"result": false}; // Default response if API call fails
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
+  String formatTime(int seconds) {
+    int minutes = seconds ~/ 60;
+    int sec = seconds % 60;
+    return "$minutes:${sec.toString().padLeft(2, '0')}";
   }
 
   @override
@@ -145,67 +181,71 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // OTP Field without Shadow
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  // Removed shadow
-                ),
-                padding: EdgeInsets.all(8),
-                child: PinCodeTextField(
-                  appContext: context,
-                  length: 6,
-                  controller: otpController,
-                  keyboardType: TextInputType.number,
-                  obscureText: false,
-                  animationType: AnimationType.fade,
-                  pinTheme: PinTheme(
-                    shape: PinCodeFieldShape.box,
-                    borderRadius: BorderRadius.circular(12),
-                    fieldHeight: 70,
-                    fieldWidth: 65,
-                    activeColor: Colors.blue,
-                    inactiveColor: Colors.grey,
-                    selectedColor: Colors.blueAccent,
-                    activeFillColor: Colors.white,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    "Time Left: ${formatTime(remainingTime)}",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: remainingTime > 30 ? Colors.blue : Colors.red,
+                    ),
                   ),
-                  animationDuration: Duration(milliseconds: 300),
-                  enableActiveFill: false,
-                  onCompleted: (v) {
-                    print("Completed OTP: $v");
-                  },
-                  onChanged: (value) {
-                    print(value);
-                  },
+                ],
+              ),
+              SizedBox(height: 8),
+              PinCodeTextField(
+                appContext: context,
+                length: 6,
+                controller: otpController,
+                keyboardType: TextInputType.number,
+                animationType: AnimationType.fade,
+                pinTheme: PinTheme(
+                  shape: PinCodeFieldShape.box,
+                  borderRadius: BorderRadius.circular(12),
+                  fieldHeight: 55,
+                  fieldWidth: MediaQuery.of(context).size.width / 8,
+                  activeColor: Colors.blue,
+                  inactiveColor: Colors.grey,
+                  selectedColor: Colors.blueAccent,
                 ),
+                animationDuration: Duration(milliseconds: 300),
+                enableActiveFill: false,
+                onCompleted: (value) {
+                  verifyOTP(value);
+                },
               ),
               SizedBox(height: 25),
-
-              // Bigger Button with Shadow
-              SizedBox(
-                width: double.infinity,
-                height: 65,
-                child: ElevatedButton(
-                  onPressed: verifyOTP,
-                  child: Text(
-                    "Verify OTP",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+              isLoading
+                  ? CircularProgressIndicator()
+                  : SizedBox(
+                    width: double.infinity,
+                    height: 65,
+                    child: ElevatedButton(
+                      onPressed:
+                          remainingTime > 0
+                              ? () => verifyOTP(otpController.text.trim())
+                              : null, // Disable if timer ends
+                      child: Text(
+                        "Verify OTP",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        elevation: 12,
+                        shadowColor: Colors.blueAccent.withOpacity(0.4),
+                      ),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 20),
-                    elevation: 12, // Increased shadow effect for the button
-                    shadowColor: Colors.blueAccent.withOpacity(
-                      0.4,
-                    ), // Button shadow
                   ),
-                ),
-              ),
             ],
           ),
         ),

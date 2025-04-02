@@ -14,29 +14,56 @@ class _PhoneAuthScreenState extends State<PhoneAuthScreen> {
   final TextEditingController phoneController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  void sendOTP() async {
+  void sendOTP() {
     String phone = "+88${phoneController.text.trim()}";
-    await _auth.verifyPhoneNumber(
-      phoneNumber: phone,
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        await _auth.signInWithCredential(credential);
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Error: ${e.message}")));
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OTPVerificationScreen(verificationId),
-          ),
-        );
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {},
-    );
+
+    // Navigate to OTP Verification Screen immediately
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => OTPVerificationScreen(phone)),
+    ).then((_) {
+      // Send OTP after navigating to the OTP screen
+      _auth.verifyPhoneNumber(
+        phoneNumber: phone,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          await _auth.signInWithCredential(credential);
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Error: ${e.message}")));
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          // Use verificationId inside OTPVerificationScreen
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {},
+      );
+    });
   }
+
+  // void sendOTP() async {
+  //   String phone = "+88${phoneController.text.trim()}";
+  //   await _auth.verifyPhoneNumber(
+  //     phoneNumber: phone,
+  //     verificationCompleted: (PhoneAuthCredential credential) async {
+  //       await _auth.signInWithCredential(credential);
+  //     },
+  //     verificationFailed: (FirebaseAuthException e) {
+  //       ScaffoldMessenger.of(
+  //         context,
+  //       ).showSnackBar(SnackBar(content: Text("Error: ${e.message}")));
+  //     },
+  //     codeSent: (String verificationId, int? resendToken) {
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) => OTPVerificationScreen(verificationId),
+  //         ),
+  //       );
+  //     },
+  //     codeAutoRetrievalTimeout: (String verificationId) {},
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {

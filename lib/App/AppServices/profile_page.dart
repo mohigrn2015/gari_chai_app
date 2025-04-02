@@ -4,10 +4,10 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Sample data for the profile
-    final String userName = "John Doe";
-    final String email = "john.doe@example.com";
-    final String phone = "+1 234 567 890";
-    final String address = "1234 Elm Street, Springfield, USA";
+    final String userName = "Mohiuddin";
+    final String email = "mohigrn2015@gmail.com";
+    final String phone = "+880 1964 139 056";
+    final String address = "Nurnagar, Shyamnagar, Satkhira";
 
     return Scaffold(
       appBar: AppBar(title: Text("Profile Page")),
