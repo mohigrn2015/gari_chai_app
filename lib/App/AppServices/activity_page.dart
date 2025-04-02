@@ -1,6 +1,64 @@
 import 'package:flutter/material.dart';
+import 'package:gari_chai/App/AppServices/home_page.dart';
+import 'package:gari_chai/App/AppServices/services_page.dart';
+import 'package:gari_chai/App/AppServices/profile_page.dart';
 
-class ActivityPage extends StatelessWidget {
+class ActivityPage extends StatefulWidget {
+  final String phoneNumber; // Accepts mobile number as parameter
+
+  ActivityPage({required this.phoneNumber});
+
+  @override
+  _ActivityPageState createState() => _ActivityPageState();
+}
+
+class _ActivityPageState extends State<ActivityPage> {
+  int _selectedIndex = 0;
+  void _onItemTapped(int index) {
+    if (index == _selectedIndex) return; // Prevent reloading same page
+
+    Widget nextPage;
+    switch (index) {
+      case 0:
+        nextPage = HomePage();
+        break;
+      case 1:
+        nextPage = ServicesPage(phoneNumber: widget.phoneNumber);
+        break;
+      case 2:
+        nextPage = ActivityPage(phoneNumber: widget.phoneNumber);
+        break;
+      case 3:
+        nextPage = ProfilePage(phoneNumber: widget.phoneNumber);
+        break;
+      default:
+        return;
+    }
+
+    // Navigate to the selected page and remove previous screen from stack
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => nextPage),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  String formatPhoneNumber(String phoneNumber) {
+    // Remove '+' if present
+    phoneNumber = phoneNumber.replaceAll('+', '');
+
+    // If the number starts with '0', replace it with '88'
+    if (phoneNumber.startsWith('0')) {
+      phoneNumber = '88${phoneNumber.substring(0)}';
+    }
+
+    return phoneNumber;
+  }
+
   @override
   Widget build(BuildContext context) {
     // List of services
@@ -14,14 +72,15 @@ class ActivityPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Activity Page"),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            // Ensure it goes back to the previous page in the stack
-            Navigator.pop(context);
-          },
-        ),
+        title: Text("Activity Logs"),
+        automaticallyImplyLeading: false,
+        // leading: IconButton(
+        //   icon: Icon(Icons.arrow_back),
+        //   onPressed: () {
+        //     // Ensure it goes back to the previous page in the stack
+        //     Navigator.pop(context);
+        //   },
+        // ),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
@@ -72,6 +131,23 @@ class ActivityPage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+      // ✅ Add Bottom Navigation Bar
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.build), label: "Services"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list_alt),
+            label: "Activity",
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+        ],
       ),
     );
   }

@@ -1,7 +1,5 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gari_chai/App/Authentication/user_driver_registration.dart';
-import 'package:pin_code_fields/pin_code_fields.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:gari_chai/App/Users/user_dashboard.dart';
@@ -38,7 +36,10 @@ class _LoadingScreenState extends State<LoadingScreen> {
           if (data['rolename'] == 'Passenger') {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => UserDashboard()),
+              MaterialPageRoute(
+                builder:
+                    (context) => UserDashboard(phoneNumber: widget.phoneNumber),
+              ),
             );
           } else if (data['rolename'] == 'Driver') {
             Navigator.pushReplacement(

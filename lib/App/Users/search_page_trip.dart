@@ -14,7 +14,6 @@ class _SearchPageState extends State<SearchPageTrip> {
   TextEditingController dateTimeController = TextEditingController();
 
   GoogleMapController? mapController;
-  Position? _currentPosition;
   LatLng _defaultPosition = LatLng(
     23.8103,
     90.4125,

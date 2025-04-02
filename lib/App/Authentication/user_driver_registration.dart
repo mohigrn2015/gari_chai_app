@@ -6,8 +6,8 @@ import 'package:gari_chai/App/Drivers/driver_dashboard.dart';
 import 'package:gari_chai/config.dart';
 
 class UserDriverRegistrationScreen extends StatefulWidget {
-  final String mobileNumber;
-  const UserDriverRegistrationScreen(this.mobileNumber, {super.key});
+  final String phoneNumber;
+  const UserDriverRegistrationScreen(this.phoneNumber, {super.key});
 
   @override
   _UserDriverRegistrationScreenState createState() =>
@@ -33,8 +33,8 @@ class _UserDriverRegistrationScreenState
   void initState() {
     super.initState();
     // Auto-fill username and mobile number
-    usernameController.text = widget.mobileNumber;
-    mobileNumberController.text = widget.mobileNumber;
+    usernameController.text = widget.phoneNumber;
+    mobileNumberController.text = widget.phoneNumber;
   }
 
   String formatPhoneNumber(String phoneNumber) {
@@ -103,7 +103,10 @@ class _UserDriverRegistrationScreenState
         if (selectedRole == "1") {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => UserDashboard()),
+            MaterialPageRoute(
+              builder:
+                  (context) => UserDashboard(phoneNumber: widget.phoneNumber),
+            ),
           );
         } else {
           Navigator.pushReplacement(

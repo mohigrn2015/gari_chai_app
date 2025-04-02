@@ -7,13 +7,15 @@ import 'package:gari_chai/App/AppServices/activity_page.dart';
 import 'package:gari_chai/App/AppServices/profile_page.dart';
 
 class UserDashboard extends StatefulWidget {
+  final String phoneNumber;
+
+  UserDashboard({required this.phoneNumber});
   @override
   _UserDashboardState createState() => _UserDashboardState();
 }
 
 class _UserDashboardState extends State<UserDashboard> {
-  int _selectedIndex = 0; // Track selected tab
-
+  int _selectedIndex = 0;
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return; // Prevent reloading same page
 
@@ -23,13 +25,13 @@ class _UserDashboardState extends State<UserDashboard> {
         nextPage = HomePage();
         break;
       case 1:
-        nextPage = ServicesPage();
+        nextPage = ServicesPage(phoneNumber: widget.phoneNumber);
         break;
       case 2:
-        nextPage = ActivityPage();
+        nextPage = ActivityPage(phoneNumber: widget.phoneNumber);
         break;
       case 3:
-        nextPage = ProfilePage();
+        nextPage = ProfilePage(phoneNumber: widget.phoneNumber);
         break;
       default:
         return;

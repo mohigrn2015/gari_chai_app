@@ -9,11 +9,11 @@ import 'package:http/http.dart' as http;
 import 'package:gari_chai/App/Users/user_dashboard.dart';
 import 'package:gari_chai/App/Drivers/driver_dashboard.dart';
 import 'package:gari_chai/config.dart';
-import 'package:gari_chai/loadingscreen.dart';
+import 'login.dart';
 
 class OTPVerificationScreen extends StatefulWidget {
-  final String phone;
-  OTPVerificationScreen(this.phone);
+  final String phoneNumber;
+  OTPVerificationScreen(this.phoneNumber);
 
   @override
   _OTPVerificationScreenState createState() => _OTPVerificationScreenState();
@@ -46,7 +46,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
 
   void sendOTP() {
     _auth.verifyPhoneNumber(
-      phoneNumber: widget.phone,
+      phoneNumber: widget.phoneNumber,
       verificationCompleted: (PhoneAuthCredential credential) async {
         await _auth.signInWithCredential(credential);
       },
@@ -87,17 +87,27 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       var response = await checkUserRole(phoneNumber);
 
       if (response['result'] == true) {
-        if (response['rolename'] == 'Passenger') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => UserDashboard()),
-          );
-        } else if (response['rolename'] == 'Driver') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => DriverDashboard()),
-          );
-        }
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LoginScreen(phoneNumber: phoneNumber),
+          ),
+        );
+
+        // if (response['rolename'] == 'Passenger') {
+        //   Navigator.pushReplacement(
+        //     context,
+        //     MaterialPageRoute(
+        //       builder:
+        //           (context) => UserDashboard(phoneNumber: widget.phoneNumber),
+        //     ),
+        //   );
+        // } else if (response['rolename'] == 'Driver') {
+        //   Navigator.pushReplacement(
+        //     context,
+        //     MaterialPageRoute(builder: (context) => DriverDashboard()),
+        //   );
+        // }
       } else {
         Navigator.pushReplacement(
           context,
@@ -130,6 +140,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   Future<Map<String, dynamic>> checkUserRole(String phoneNumber) async {
     try {
       String formattedPhone = formatPhoneNumber(phoneNumber);
+
       final response = await http.post(
         Uri.parse("${AppConfig.baseUrl}/api/checkUser"),
         headers: {"Content-Type": "application/json"},
