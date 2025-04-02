@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "730293875447",
+    "project_id": "garichai-53a76",
+    "storage_bucket": "garichai-53a76.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:730293875447:android:3bb6ce988f628b17a3d9f2",
+        "android_client_info": {
+          "package_name": "com.example.gari_chai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBoVSxyC0LSxwBC3jJD-q8H9P1xPxVa2tI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
