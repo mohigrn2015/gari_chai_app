@@ -6,8 +6,6 @@ import 'user_driver_registration.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:gari_chai/App/Users/user_dashboard.dart';
-import 'package:gari_chai/App/Drivers/driver_dashboard.dart';
 import 'package:gari_chai/config.dart';
 import 'login.dart';
 

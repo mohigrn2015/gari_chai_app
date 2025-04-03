@@ -54,31 +54,8 @@ class _UserDashboardState extends State<UserDashboard> {
       ),
       body: Column(
         children: [
-          // Top Section with Buttons (50%)
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: GridView.count(
-                crossAxisCount: 4,
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                children: [
-                  _buildSuggestionButton("Trip", Icons.directions_car),
-                  _buildSuggestionButton("Reserve", Icons.calendar_today),
-                  _buildSuggestionButton("CNG", Icons.electric_car),
-                  _buildSuggestionButton("Moto", Icons.motorcycle),
-                  _buildSuggestionButton("Rentals", Icons.car_rental),
-                  _buildSuggestionButton("Intercity", Icons.location_city),
-                  _buildSuggestionButton("Relocate", Icons.swap_horiz),
-                  _buildSuggestionButton("Courier", Icons.local_shipping),
-                ],
-              ),
-            ),
-          ),
-
-          // Divider Line
-          //Divider(thickness: 2, color: Colors.grey.shade300),
-          //Divider(thickness: 2),
+          // Top Section with Search options
+          SizedBox(height: 20),
 
           // Search Box (Placed Right Below the Divider)
           Padding(
@@ -175,6 +152,27 @@ class _UserDashboardState extends State<UserDashboard> {
             ),
           ),
 
+          SizedBox(height: 20),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: GridView.count(
+                crossAxisCount: 4,
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                children: [
+                  _buildSuggestionButton("Trip", Icons.directions_car),
+                  _buildSuggestionButton("Reserve", Icons.calendar_today),
+                  _buildSuggestionButton("CNG", Icons.electric_car),
+                  _buildSuggestionButton("Moto", Icons.motorcycle),
+                  _buildSuggestionButton("Rentals", Icons.car_rental),
+                  _buildSuggestionButton("Intercity", Icons.location_city),
+                  _buildSuggestionButton("Relocate", Icons.swap_horiz),
+                  _buildSuggestionButton("Courier", Icons.local_shipping),
+                ],
+              ),
+            ),
+          ),
           // Bottom Section
           Expanded(
             child: Padding(

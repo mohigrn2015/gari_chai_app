@@ -15,7 +15,8 @@ class MyApp extends StatelessWidget {
       title: 'Gari Chai',
       theme: ThemeData.light(), // Light theme
       darkTheme: ThemeData.dark(), // Dark theme
-      themeMode: ThemeMode.system, // Automatically switch based on device settings
+      themeMode:
+          ThemeMode.system, // Automatically switch based on device settings
       home: PhoneAuthScreen(),
     );
   }
